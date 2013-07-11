@@ -35,6 +35,24 @@ func Upcoming(limit int, desc bool) []Show {
 	return s
 }
 
+// Sorts and merges results from all calendars
+func Past(limit int, desc bool) []Show {
+	s := []Show{}
+	for _, c := range calendars {
+		s = mergeShows(s, c.Past(limit, desc), (func(d bool) func(Show, Show) bool {
+			if d {
+				return func(a, b Show) bool { return a.After(b) }
+			} else {
+				return func(a, b Show) bool { return a.Before(b) }
+			}
+		}(desc)))
+	}
+	if limit > 0 && len(s) > limit {
+		s = s[:limit]
+	}
+	return s
+}
+
 // Assumes that input slices are already sorted
 func mergeShows(a, b []Show, compare func(Show, Show) bool) []Show {
 	c := []Show{}

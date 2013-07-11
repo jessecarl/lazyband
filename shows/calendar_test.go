@@ -54,13 +54,10 @@ func (f fakeCalendar) equals(g fakeCalendar) bool {
 	return true
 }
 
-func TestRegisterCalendar(t *testing.T) {
-	c := fakeCalendar{}
-	RegisterCalendar(c)
-}
+var testCals map[string]fakeCalendar
 
-func TestUpcoming(t *testing.T) {
-	testCals := map[string]fakeCalendar{
+func init() {
+	testCals = map[string]fakeCalendar{
 		"none": fakeCalendar{},
 		"all": fakeCalendar{
 			Show{Dates: []time.Time{time.Date(2011, time.May, 1, 0, 0, 0, 0, time.UTC)}},
@@ -201,6 +198,14 @@ func TestUpcoming(t *testing.T) {
 			Show{Dates: []time.Time{time.Date(2011, time.May, 30, 0, 0, 0, 0, time.UTC)}},
 		},
 	}
+}
+
+func TestRegisterCalendar(t *testing.T) {
+	c := fakeCalendar{}
+	RegisterCalendar(c)
+}
+
+func TestUpcoming(t *testing.T) {
 	tests := []struct {
 		Expected, A, B fakeCalendar
 		Limit          int
@@ -319,6 +324,130 @@ func TestUpcoming(t *testing.T) {
 		RegisterCalendar(test.B)
 		result := Upcoming(test.Limit, test.Desc)
 		if !fakeCalendar(result).equals(fakeCalendar(test.Expected.Upcoming(test.Limit, test.Desc))) {
+			t.Errorf("Resulting Calendar does not match Expected Calendar")
+		}
+	}
+}
+
+func TestPast(t *testing.T) {
+	tests := []struct {
+		Expected, A, B fakeCalendar
+		Limit          int
+		Desc           bool
+	}{
+		{
+			testCals["all"],
+			testCals["all"],
+			testCals["none"],
+			30,
+			false,
+		},
+		{
+			testCals["all"],
+			testCals["even"],
+			testCals["odd"],
+			30,
+			false,
+		},
+		{
+			testCals["all"],
+			testCals["odd"],
+			testCals["even"],
+			30,
+			false,
+		},
+		{
+			testCals["all"],
+			testCals["early"],
+			testCals["late"],
+			30,
+			false,
+		},
+		{
+			testCals["fizzbuzz"],
+			testCals["fizz"],
+			testCals["buzz"],
+			30,
+			false,
+		},
+		{
+			testCals["all"],
+			testCals["all"],
+			testCals["none"],
+			15,
+			false,
+		},
+		{
+			testCals["all"],
+			testCals["even"],
+			testCals["odd"],
+			20,
+			false,
+		},
+		{
+			testCals["all"],
+			testCals["odd"],
+			testCals["even"],
+			10,
+			false,
+		},
+		{
+			testCals["all"],
+			testCals["early"],
+			testCals["late"],
+			15,
+			false,
+		},
+		{
+			testCals["fizzbuzz"],
+			testCals["fizz"],
+			testCals["buzz"],
+			45,
+			false,
+		},
+		{
+			testCals["all"],
+			testCals["all"],
+			testCals["none"],
+			30,
+			true,
+		},
+		{
+			testCals["all"],
+			testCals["even"],
+			testCals["odd"],
+			20,
+			true,
+		},
+		{
+			testCals["all"],
+			testCals["odd"],
+			testCals["even"],
+			30,
+			true,
+		},
+		{
+			testCals["all"],
+			testCals["early"],
+			testCals["late"],
+			15,
+			true,
+		},
+		{
+			testCals["fizzbuzz"],
+			testCals["fizz"],
+			testCals["buzz"],
+			45,
+			true,
+		},
+	}
+	for _, test := range tests {
+		// reset source calendars at the start of each test
+		calendars = []Calendar{}
+		RegisterCalendar(test.A)
+		RegisterCalendar(test.B)
+		result := Past(test.Limit, test.Desc)
+		if !fakeCalendar(result).equals(fakeCalendar(test.Expected.Past(test.Limit, test.Desc))) {
 			t.Errorf("Resulting Calendar does not match Expected Calendar")
 		}
 	}
