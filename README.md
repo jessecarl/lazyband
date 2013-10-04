@@ -5,3 +5,4 @@ lazyband
 
 Go Packages for tools for touring bands
 
+See [online documentation](http://godoc.org/github.com/lazyengineering/lazyband).
